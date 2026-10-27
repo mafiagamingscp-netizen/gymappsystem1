@@ -1,0 +1,89 @@
+{
+  "rules": {
+    "admins": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).val() === true",
+      ".write": false
+    },
+    "config": {
+      "platform": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admins/' + auth.uid).val() === true"
+      },
+      "pricing": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admins/' + auth.uid).val() === true"
+      }
+    },
+    "licenses": {
+      "$key": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admins/' + auth.uid).val() === true"
+      }
+    },
+    "trials": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).val() === true",
+      "$key": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('admins/' + auth.uid).val() === true || (!data.exists() && newData.child('start').val() === now))"
+      }
+    },
+    "subRequests": {
+      ".read": "auth != null && (root.child('admins/' + auth.uid).val() === true || (query.orderByChild === 'uid' && query.equalTo === auth.uid))",
+      ".indexOn": ["uid", "createdAt", "status"],
+      "$id": {
+        ".write": "auth != null && (root.child('admins/' + auth.uid).val() === true || (!data.exists() && newData.child('uid').val() === auth.uid && newData.child('status').val() === 'pending'))",
+        ".validate": "newData.hasChildren(['email', 'months', 'amount', 'status'])",
+        "email": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "months": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 60" },
+        "amount": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+        "shot": { ".validate": "newData.isString() && newData.val().length <= 300000" },
+        "note": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "sender": { ".validate": "newData.isString() && newData.val().length <= 60" }
+      }
+    },
+    "notifications": {
+      "broadcast": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admins/' + auth.uid).val() === true"
+      },
+      "users": {
+        "$key": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('admins/' + auth.uid).val() === true"
+        }
+      }
+    },
+    "bans": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).val() === true",
+      "devices": { "$id": { ".read": "auth != null", ".write": "auth != null && root.child('admins/' + auth.uid).val() === true" } },
+      "fp":      { "$id": { ".read": "auth != null", ".write": "auth != null && root.child('admins/' + auth.uid).val() === true" } },
+      "ips":     { "$id": { ".read": "auth != null", ".write": "auth != null && root.child('admins/' + auth.uid).val() === true" } },
+      "emails":  { "$id": { ".read": "auth != null", ".write": "auth != null && root.child('admins/' + auth.uid).val() === true" } }
+    },
+    "devices": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).val() === true",
+      ".indexOn": ["lastSeen"],
+      "$id": {
+        ".write": "auth != null && (root.child('admins/' + auth.uid).val() === true || newData.child('uid').val() === auth.uid)"
+      }
+    },
+    "tenantIndex": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).val() === true",
+      "$t": {
+        ".write": "auth != null && (root.child('admins/' + auth.uid).val() === true || !data.exists() || data.child('uid').val() === auth.uid)"
+      }
+    },
+    "adminMirror": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).val() === true",
+      "$t": {
+        ".write": "auth != null && (root.child('admins/' + auth.uid).val() === true || !data.exists() || data.child('uid').val() === auth.uid)"
+      }
+    },
+    "tenants": {
+      "$t": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
